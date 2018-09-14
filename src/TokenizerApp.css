@@ -1,0 +1,83 @@
+* {
+    -webkit-box-sizing: border-box;
+       -moz-box-sizing: border-box;
+            box-sizing: border-box;
+  }
+  
+  html, body {
+    margin: 30px;
+    height: 100%;
+  }
+  #root {
+  background: #fff;
+  border: 1px solid #ddd;
+  font-family: 'Georgia', serif;
+  font-size: 14px;
+  padding: 15px;
+  }
+  .public-DraftEditor-content {
+    margin: 0 -15px -15px;
+    padding: 15px;
+    font-size: 18px;
+  }
+  
+  body {
+    font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 16px;
+    margin: 0;
+  }
+  
+  .app {
+    display: flex;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .rt-tokenizer {
+    border: 4px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    height: 370px;
+    padding: 5px;
+    width: 600px;
+  }
+  
+  .rt-tokenizer__user-input {
+    border: none;
+    display: inline-block;
+    flex-grow: 1;
+    font-size: 16px;
+    height: 28px;
+    padding: 4px;
+    resize: none;
+  }
+  
+  .rt-tokenizer__user-input:focus {
+    outline: 0;
+  }
+  
+  .rt-cell {
+    background-color: #ddd;
+    border: 1px solid #bbb;
+    border-radius: 6px;
+    color: #444;
+    display: inline-block;
+    height: 28px;
+    margin: 0 3px 3px 0;
+    padding: 4px 8px;
+  }
+  
+  .rt-cell__content,
+  .rt-cell__delete {
+    display: inline-block;
+    margin: 0;
+    vertical-align: baseline;
+  }
+  
+  .rt-cell__delete {
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    margin-left: 8px;
+  }
