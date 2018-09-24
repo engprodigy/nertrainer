@@ -9,6 +9,7 @@ import MyEditor from './MyEditor';
 //import 'draft-js/dist/Draft.css';
 import Draft from 'draft-js';
 import CharacterWordSentence from './characterWordSentence';
+import styles from './styles'
 
 
 const {
@@ -189,8 +190,8 @@ const TokenSpan = (props) => {
     </span>
   );
 };
-const styles = {
-  root: {
+/*const styles = {
+ /* root: {
     fontFamily: '\'Helvetica\', sans-serif',
     padding: 20,
     width: 600,
@@ -217,7 +218,7 @@ const styles = {
     backgroundColor: 'rgba(248, 222, 126, 1.0)',
     padding: '2px 0',
   },
-};
+};*/
 
 //ReactDOM.render(<App />, document.getElementById('root'));
 //ReactDOM.render(<MyEditor />, document.getElementById('root'));

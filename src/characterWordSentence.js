@@ -5,8 +5,17 @@ import { compose } from 'ramda';
 import './style.css';
 import Draft from 'draft-js';
 //import {Editor, EditorState} from 'draft-js';
+import styles from './styles';
+import * as triggers from './triggers';
+import {AutocompleteEditor} from './autocomplete';
+import SuggestionList from './suggestions';
+import {normalizeIndex, filterArray} from './utils';
+//import * as triggers from './triggers';
+import * as data from './data';
+import addSuggestion from './addsuggestion';
 
 var allUserData = '';
+var filteredArrayTemp;
 
 const {
   convertFromRaw,
@@ -108,9 +117,23 @@ class CharacterWordSentence extends React.Component {
     ]);
     const blocks = convertFromRaw(rawContent);
     this.onChange = (editorState) => this.setState({editorState});
-    this.focus = () => this.refs.editor.focus();
+    //this.focus = () => this.refs.editor.focus();
+    this.onAutocompleteChange = (autocompleteState) => this.setState({
+      autocompleteState
+    });
+
+    this.onInsert = (insertState) => {
+      if (!filteredArrayTemp) {
+        return null;
+      }
+      const index = normalizeIndex(insertState.selectedIndex, filteredArrayTemp.length);
+      insertState.text = insertState.trigger + filteredArrayTemp[index];
+      return addSuggestion(insertState);
+    };
+
     this.state = {
       editorState: EditorState.createWithContent(blocks, decorator),
+      autocompleteState: null,
     };
   }
    
@@ -328,6 +351,19 @@ class CharacterWordSentence extends React.Component {
           //  entityRanges: [{offset: 0, length: nerValuesWord.length, key: 'first'}],
           });
           } 
+          else if(isNer && nerReturnedValue.sentences[i]['tokens'][j]['ner'] == "NUMBER")
+          {
+            var nerValuesWord = nerReturnedValue.sentences[i]['tokens'][j]['originalText'] 
+           // + '  ' +  '-------------------------' + nerReturnedValue.sentences[i]['tokens'][j]['ner'];
+           + '  ' +  '-------------------------' + 'O';
+            rawContent.blocks.push( {
+              text: nerValuesWord + '\n',
+              type: 'unstyled',
+            //  entityRanges: [{offset: 0, length: nerValuesWord.length, key: 'first'}],
+            });
+
+          }
+          //else if(isNer && nerReturnedValue.sentences[i]['tokens'][j]['ner'] != "NUMBER")
           else{
             var nerValuesWord = nerReturnedValue.sentences[i]['tokens'][j]['originalText'] 
             + '  ' +  '-------------------------' + nerReturnedValue.sentences[i]['tokens'][j]['ner'];
@@ -395,6 +431,28 @@ class CharacterWordSentence extends React.Component {
 
 
   handleChange = e => this.setCounts(e.target.value);
+  renderAutocomplete() {
+    const {
+      autocompleteState,
+      onSuggestionClick
+    } = this.state;
+    if (!autocompleteState) {
+      return null;
+    }
+    filteredArrayTemp = this.getFilteredArray(autocompleteState.type, autocompleteState.text);
+    autocompleteState.array = filteredArrayTemp;
+    autocompleteState.onSuggestionClick = this.onSuggestionItemClick;
+    return <SuggestionList suggestionsState = {
+      autocompleteState
+    }
+    />;
+  };
+
+  getFilteredArray(type, text) {
+    const dataArray = type == triggers.PERSON ? data.persons : data.tags;
+    const filteredArray = filterArray(dataArray, text.replace(triggers.regExByType(type), ''));
+    return filteredArray;
+  }
   //logState = e => this.analyzer();
   //this.focus = () => this.refs.editor.focus();
   //onChange = e => (editorState) => this.setState({editorState});
@@ -413,20 +471,30 @@ class CharacterWordSentence extends React.Component {
         <div id="topmenu"><p><button onClick={() => this.analyzer()}>PreAnalyze</button></p></div>
         
         <textarea rows='15' onChange={this.handleChange} value={this.state.text}></textarea>
-        <textarea rows='15' value={this.state.word}></textarea>
+        
         <p><strong>Character Count:</strong> {this.state.charCount}<br/>
         <strong>Word Count:</strong> {this.state.wordCount}<br/>
         <strong>Sentence Count:</strong> {this.state.sentenceCount}<br/>
         <strong>Paragraph Count:</strong> {this.state.paragraphCount}</p>
 
          <div style={styles.root}>
-        <div style={styles.editor} onClick={this.focus}>
-          <Editor
-            editorState={this.state.editorState}
-            onChange={this.onChange}
-            placeholder="Enter some text..."
-            ref="editor"
-          />
+            {
+          this.renderAutocomplete()
+                }
+        <div style={styles.editor} >
+        < AutocompleteEditor editorState = {
+        this.state.editorState
+        }
+        onChange = {
+        this.onChange
+        }
+        onAutocompleteChange = {
+        this.onAutocompleteChange
+        }
+        onInsert = {
+        this.onInsert
+        }
+        />
         </div>
         <input
           onClick={this.logState}
@@ -434,9 +502,9 @@ class CharacterWordSentence extends React.Component {
           type="button"
           value="Log State"
         />
-      </div>
+        </div>
         
-      </div>
+        </div>
     );
   }
 }
@@ -479,7 +547,7 @@ const TokenSpan = (props) => {
   );
 };
 
-const styles = {
+/*const styles = {
   root: {
     fontFamily: '\'Helvetica\', sans-serif',
     padding: 20,
@@ -490,8 +558,8 @@ const styles = {
     cursor: 'text',
     minHeight: 80,
     padding: 10,
-    /*width: 1000, */
-  },
+   
+  }, 
   button: {
     marginTop: 10,
     textAlign: 'center',
@@ -508,7 +576,30 @@ const styles = {
     backgroundColor: 'rgba(248, 222, 126, 1.0)',
     padding: '2px 0',
   },
-};
+  suggestions: {
+    borderRadius: 3,
+    margin: 0,
+    padding: 0,
+    background: 'white',
+    boxShadow: '0 0 0 1px rgba(0, 0, 0, .1), 0 1px 10px rgba(0, 0, 0, .35)',
+    listStyleType: 'none'
+  },
+  person: {
+    margin: 0,
+    padding: '16px 24px',
+    color: '#343d46'
+  },
+  selectedPerson: {
+    margin: 0,
+    padding: '16px 24px',
+    background: '#a7b5bf',
+    color: 'white',
+    borderRadius: 3
+  },
+  link: {
+    color: '#a7b5bf'
+  }
+};*/
 
 export default CharacterWordSentence;
 //render(<App />, document.getElementById('root'));
