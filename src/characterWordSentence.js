@@ -15,7 +15,12 @@ import * as data from './data';
 import addSuggestion from './addsuggestion';
 
 var allUserData = '';
+//var NerRecognisedEntity = ['France','France'];
+var NerRecognisedEntity = [];
+var NerRecognisedEntityRegexValue = [];
 var filteredArrayTemp;
+var regexStringNer = '';
+var regexString ='\\brocket\\b|\\bkolade\\b';
 
 const {
   convertFromRaw,
@@ -32,46 +37,12 @@ const rawContent = {
   blocks: [
     {
       text: (
-        'This is an "immutable" entity: Superman. Deleting any ' +
-        'characters will delete the entire entity. Adding characters ' +
-        'will remove the entity from the range.'
+        ' Paste Text to Analyse Here Over. Press Back Space to Start ' 
       ),
       type: 'unstyled',
-      entityRanges: [{offset: 31, length: 8, key: 'first'}],
+      entityRanges: [{offset: 0, length: 70, key: 'first'}],
     },
-    {
-      text: '',
-      type: 'unstyled',
-    },
-    {
-      text: name,
-      type: 'unstyled',
-    },
-    {
-      text: '',
-      type: 'unstyled',
-    },
-    {
-      text: (
-        'This is a "mutable" entity: Batman. Characters may be added ' +
-        'and removed.'
-      ),
-      type: 'unstyled',
-      entityRanges: [{offset: 28, length: 6, key: 'second'}],
-    },
-    {
-      text: '',
-      type: 'unstyled',
-    },
-    {
-      text: (
-        'This is a "segmented" entity: Green Lantern. Deleting any ' +
-        'characters will delete the current "segment" from the range. ' +
-        'Adding characters will remove the entire entity from the range.'
-      ),
-      type: 'unstyled',
-      entityRanges: [{offset: 30, length: 13, key: 'third'}],
-    },
+    
   ],
   entityMap: {
     first: {
@@ -101,7 +72,7 @@ class CharacterWordSentence extends React.Component {
     //this.state = {editorState: EditorState.createEmpty()};
     //this.state = {editorState: EditorState.createWithContent(blocks, CompositeDecorator)};
     //this.state = {editorState: EditorState.createEmpty(blocks, CompositeDecorator)};
-    const decorator = new CompositeDecorator([
+   /* const decorator = new CompositeDecorator([
       {
         strategy: getEntityStrategy('IMMUTABLE'),
         component: TokenSpan,
@@ -114,13 +85,19 @@ class CharacterWordSentence extends React.Component {
         strategy: getEntityStrategy('SEGMENTED'),
         component: TokenSpan,
       },
+    ]);*/
+    const compositeDecorator = new CompositeDecorator([
+      {
+        strategy: handleStrategy,
+        component: HandleSpan,
+      },
+      {
+        strategy: hashtagStrategy,
+        component: HashtagSpan,
+      },
     ]);
-    const blocks = convertFromRaw(rawContent);
-    this.onChange = (editorState) => this.setState({editorState});
-    //this.focus = () => this.refs.editor.focus();
-    this.onAutocompleteChange = (autocompleteState) => this.setState({
-      autocompleteState
-    });
+    //const blocks = convertFromRaw(rawContent);
+    
 
     this.onInsert = (insertState) => {
       if (!filteredArrayTemp) {
@@ -132,9 +109,23 @@ class CharacterWordSentence extends React.Component {
     };
 
     this.state = {
-      editorState: EditorState.createWithContent(blocks, decorator),
+      //editorState: EditorState.createWithContent(blocks, decorator),
+      editorState: EditorState.createEmpty(compositeDecorator),
+     // editorState: EditorState.createEmpty(),
       autocompleteState: null,
     };
+
+    this.onChange = (editorState) => {
+
+      
+      this.setState({editorState}),
+      this.analyzer()
+      
+     };
+    this.focus = () => this.refs.editor.focus();
+    this.onAutocompleteChange = (autocompleteState) => this.setState({
+      autocompleteState
+    });
   }
    
   state = {
@@ -146,7 +137,7 @@ class CharacterWordSentence extends React.Component {
     word:'',
     tokenizeContent:'',
    // editorState: EditorState.createEmpty()
-   // editorState: EditorState.createWithContent(blocks, decorator)
+  // editorState: EditorState.createWithContent(compositeDecorator)
   }
 
   componentDidMount() {
@@ -268,9 +259,11 @@ class CharacterWordSentence extends React.Component {
   }
     //analyzer =  allUserData => {
     analyzer =  () => {
-  
+    let currentComponent = this;
     var request = require('request');
-    var dataString = this.state.text;
+    //var dataString = this.state.text;
+    var dataString = currentComponent.state.editorState.getCurrentContent().getPlainText();
+    //var block = this.state.editorState.getCurrentContent().getBlockMap()
     const rawContent = {
       blocks: [
         {
@@ -302,7 +295,13 @@ class CharacterWordSentence extends React.Component {
       },
      
     };
-    let currentComponent = this;
+
+    //console.log(this.state.editorState.getCurrentContent().getPlainText());
+   // console.log(this.state.editorState.getCurrentContent().getBlockMap());
+    
+    //const contentState = editorState.getCurrentContent();
+    //const contentState = this.state.editorState.getCurrentContent();
+   // let currentComponent = this;
     var options = {
    // url: 'http://textanalysis.sdsd.co:9005/?properties={%22annotators%22%3A%22tokenize%2Cssplit%2Cpos%22%2C%22outputFormat%22%3A%22json%22}',
     //url: 'http://textanalysis.sdsd.co:9005/?properties={"annotators":"tokenize,ssplit,pos","outputFormat":"json"}',
@@ -315,9 +314,10 @@ class CharacterWordSentence extends React.Component {
     function callback(error, response, body) {
     if (!error && response.statusCode == 200) {
 
-        console.log(body);
+       // console.log(body);
 
         var nerReturnedValue = JSON.parse(body);
+        //console.log( nerReturnedValue);
        // console.log( nerReturnedValue.sentences[0]['tokens'][0]['word']);
         //console.log( nerReturnedValue.sentences[2]['entitymentions'].length );
         var nerValues = '';
@@ -325,7 +325,7 @@ class CharacterWordSentence extends React.Component {
         var offsetEndPosition = [];
         var wordLength = [];
          for(var i=0; i < nerReturnedValue.sentences.length; i++){
-          console.log(i);
+         // console.log(i);
            //  for(var j=0; j < nerReturnedValue.sentences[i]['entitymentions'].length; j++){
             for(var j=0; j < nerReturnedValue.sentences[i]['tokens'].length; j++){  
            /*nerValues = nerValues + '\n' + nerReturnedValue.sentences[i]['entitymentions'][j]['text'] 
@@ -377,12 +377,47 @@ class CharacterWordSentence extends React.Component {
           // console.log(nerValues);
             }
          }
-         //console.log(wordLength);
-         //const content = currentComponent.state.editorState.getCurrentContent();
+         //console.log(nerReturnedValue.sentences.length);
+         //NerRecognisedEntity = [];
+         for(var i=0; i < nerReturnedValue.sentences.length; i++)
+         {
+          
+            for(var j=0; j < nerReturnedValue.sentences[i]['entitymentions'].length; j++)
+            { 
+
+          //  console.log(nerReturnedValue.sentences[i]['entitymentions'][j]['text']
+          //  + '  ' +
+          // nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] );
+          // NerRecognisedEntity.push(nerReturnedValue.sentences[i]['entitymentions'][j]['text']);
+             if(nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] != "NUMBER")
+              {
+                NerRecognisedEntity.push(nerReturnedValue.sentences[i]['entitymentions'][j]['text']);
+             }
+            }
+
+         }
+         /*NerRecognisedEntityRegexValue = [];
+         regexStringNer = '\\brocket\\b|\\bkolade\\b';
+         if(NerRecognisedEntity.length != null) 
+         {
+
+         
+            for(var i=0; i < NerRecognisedEntity.length; i++)
+         
+             {
+           regexStringNer = '\\b'+NerRecognisedEntity[1]+'\\b';
+           NerRecognisedEntityRegexValue.push('\\b'+NerRecognisedEntity[1]+'\\b')
+          
+             }
+         }*/
+        // console.log(NerRecognisedEntity.length);
+         console.log(NerRecognisedEntity);
+         
+        // const content = currentComponent.state.editorState.getCurrentContent();
          //console.log(content);
         // console.log(convertToRaw(content));
         // const blocked = convertFromRaw(content);
-        const decorator = new CompositeDecorator([
+        /*const decorator = new CompositeDecorator([
           {
             strategy: getEntityStrategy('IMMUTABLE'),
             component: TokenSpan,
@@ -395,32 +430,51 @@ class CharacterWordSentence extends React.Component {
             strategy: getEntityStrategy('SEGMENTED'),
             component: TokenSpan,
           },
+        ]);*/
+        const compositeDecorator = new CompositeDecorator([
+          {
+            strategy: handleStrategy,
+            component: HandleSpan,
+          },
+          {
+            strategy: hashtagStrategy,
+            component: HashtagSpan,
+          },
         ]);
        
 
-       const blocks = convertFromRaw(rawContent);
+       //const blocks = convertFromRaw(rawContent);
+      // const blocks = convertFromRaw(this.state.editorState.getCurrentContent());
         const plainText = 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.';
-        const content = ContentState.createFromText(nerValues);
+      // const content = ContentState.createFromText(plainText);
+       //const content = ContentState.createFromText(dataString);
+       // console.log(content.getBlockMap()._list._tail.array["0"][1]._map._root.entries);
+        
+       // console.log(content.getBlockMap().first());
          currentComponent.setState({
-         word: nerValues,
-        // editorState: EditorState.createWithContent(content)
+          word: nerValues,
+         // editorState: editorState
+         //editorState: EditorState.createWithContent(content)
          //editorState: EditorState.createEmpty() 
-         editorState: EditorState.createWithContent(blocks, decorator) 
+         // editorState: EditorState.createWithContent(block, compositeDecorator) 
+        //  editorState: EditorState.createEmpty(compositeDecorator),
         // editorState: EditorState.push(blocked)
-            
+        // editorState: EditorState.createWithContent(compositeDecorator)
         // createWithContent(blocks, decorator)
         //changeType: EditorChangeType
          // word: nerReturnedValue.sentences[0]['tokens'][0]['word']
         // word: nerReturnedValue.sentences[0]['entitymentions'][0]['text'] 
         // + '  ' +  nerReturnedValue.sentences[0]['entitymentions'][0]['ner']
         })
+       // currentComponent.setState({editorState});
        // console.log(allUserData);
         //greeting(allUserData);
+       // console.log(currentComponent.state.editorState.getCurrentContent().getBlockMap());
               }
            }
 
     request(options, callback);
-    
+   // console.log(currentComponent.state.editorState.getCurrentContent().getBlockMap());
     function greeting(name) {
      // tokenizeContent = name;
       //alert('Hello ' + name);
@@ -481,7 +535,7 @@ class CharacterWordSentence extends React.Component {
             {
           this.renderAutocomplete()
                 }
-        <div style={styles.editor} >
+        <div style={styles.editor} onClick={this.focus}  >
         < AutocompleteEditor editorState = {
         this.state.editorState
         }
@@ -494,6 +548,7 @@ class CharacterWordSentence extends React.Component {
         onInsert = {
         this.onInsert
         }
+        ref="editor"
         />
         </div>
         <input
@@ -511,7 +566,17 @@ class CharacterWordSentence extends React.Component {
 
 function getEntityStrategy(mutability) {
   return function(contentBlock, callback, contentState) {
-    //console.log(contentBlock.getText());
+   /* console.log(contentBlock.getText());
+    var regex = RegExp('Sarl*','g');
+    const text = contentBlock.getText();
+    let matchArr, start, end;
+    while ((matchArr = regex.exec(text)) !== null) {
+    start = matchArr.index;
+    end = start + matchArr[0].length;*/
+   //console.log(start);
+   // console.log(end );
+    
+           //}
     contentBlock.findEntityRanges(
       (character) => {
         const entityKey = character.getEntity();
@@ -546,6 +611,105 @@ const TokenSpan = (props) => {
     </span>
   );
 };
+
+/**
+       * Super simple decorators for handles and hashtags, for demonstration
+       * purposes only. Don't reuse these regexes.
+       */
+      // const HANDLE_REGEX = /\@[\w]+/g;
+      
+      var rocket = 'rocket';
+     
+      var regexString2 = '\\b'+rocket+'\\b|\\bkolade\\b';
+    // var regexString2 = '\\brocket\\b|\\bkolade\\b';
+     // var regexString = regexStringNer;
+     //var regexStringNew =  regexString.concat(regexString2);
+     regexString =  regexString +  regexString2;
+      //const HANDLE_REGEX = RegExp(regexString, 'g');
+      const HANDLE_REGEX = regexString;
+      //const HANDLE_REGEX =/\brocket\b|\bkolade\b/g;
+      
+      const HASHTAG_REGEX = /\#[\w\u0590-\u05ff]+/g;
+      
+      function handleStrategy(contentBlock, callback, contentState) {
+        findWithRegex(HANDLE_REGEX, contentBlock, callback);
+      }
+      
+      function hashtagStrategy(contentBlock, callback, contentState) {
+        findWithRegex2(HASHTAG_REGEX, contentBlock, callback);
+      }
+      
+      function findWithRegex(regexTracker, contentBlock, callback) {
+       
+       var regexStringNer ;
+
+       if(NerRecognisedEntity.length == 0)
+       {
+        regexStringNer = null;
+        //regexStringNer = '\\b'+NerRecognisedEntity[0]+'\\b';
+       }else
+       {
+        for(var i=0; i < NerRecognisedEntity.length; i++)
+         {
+           if(i == 0)
+           {
+            regexStringNer = '\\b'+NerRecognisedEntity[0]+'\\b';
+           }
+           else
+           {
+            regexStringNer = regexStringNer+'|\\b'+NerRecognisedEntity[i]+'\\b';
+        // console.log(NerRecognisedEntity[1]);
+           }
+         }
+
+        }
+        //console.log(regexStringNer);
+        //console.log('\\b'+NerRecognisedEntity[1]+'\\b');
+       // regexStringNer = '\\b'+NerRecognisedEntity[0]+'\\b';
+       // var rocket = NerRecognisedEntity[1];
+        console.log(regexStringNer);
+        const handle_regex = RegExp(regexStringNer, 'g');
+        //var regexString2 = '\\brocket\\b|\\bkolade\\b';
+        //const handle_regex = RegExp(regexString2, 'g');
+        const text = contentBlock.getText();
+        let matchArr, start;
+        while ((matchArr = handle_regex.exec(text)) !== null) {
+          start = matchArr.index;
+          callback(start, start + matchArr[0].length);
+        }
+      }
+
+      function findWithRegex2(regex, contentBlock, callback) {
+        const text = contentBlock.getText();
+        let matchArr, start;
+        while ((matchArr = regex.exec(text)) !== null) {
+          start = matchArr.index;
+          callback(start, start + matchArr[0].length);
+        }
+      }
+      
+      const HandleSpan = (props) => {
+        return (
+          <span
+            style={styles.handle}
+            data-offset-key={props.offsetKey}
+            >
+            {props.children}
+          </span>
+        );
+      };
+      
+      const HashtagSpan = (props) => {
+        return (
+          <span
+            style={styles.hashtag}
+            data-offset-key={props.offsetKey}
+            >
+            {props.children}
+          </span>
+        );
+      };
+      
 
 /*const styles = {
   root: {

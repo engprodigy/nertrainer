@@ -44,6 +44,7 @@ const styles = {
   },
   immutable: {
     //backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    backgroundColor: 'rgba(204, 204, 255, 1.0)',
     padding: '2px 0',
   },
   mutable: {
@@ -53,6 +54,14 @@ const styles = {
   segmented: {
     backgroundColor: 'rgba(248, 222, 126, 1.0)',
     padding: '2px 0',
+  },
+  handle: {
+    color: 'rgba(98, 177, 254, 1.0)',
+    direction: 'ltr',
+    unicodeBidi: 'bidi-override',
+  },
+  hashtag: {
+    color: 'rgba(95, 184, 138, 1.0)',
   },
 };
 
