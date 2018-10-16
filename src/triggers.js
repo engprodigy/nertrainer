@@ -1,17 +1,17 @@
 export const TAG = 1;
 export const PERSON = 2;
 export const RELATIONS = 3;
-//export const TAG_TRIGGER = '#';
-export const TAG_TRIGGER = '-O';
-//export const PERSON_TRIGGER = '@';
-export const PERSON_TRIGGER = '-O';
+export const TAG_TRIGGER = '#';
+//export const TAG_TRIGGER = '-O';
+export const PERSON_TRIGGER = 'France';
+//export const PERSON_TRIGGER = '-O';
 export const RELATIONS_TRIGGER = '<';
 
 
-//export const TAG_REG_EX = /^#/;
-export const TAG_REG_EX = /^-O/;
-//export const PERSON_REG_EX = /^@/;
-export const PERSON_REG_EX = /^-O/;
+//export const TAG_REG_EX = /\w+/g;
+export const TAG_REG_EX = /^#/;
+export const PERSON_REG_EX = /\bFrance\b|\bkolade\b/g;
+//export const PERSON_REG_EX = /^-O/;
 
 
 export const triggerByType = (type) => {

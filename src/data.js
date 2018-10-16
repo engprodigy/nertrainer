@@ -1,4 +1,4 @@
-export const persons = [
+ export const persons = [
   'VESSEL_NAME',
   'PORT',
   'DWT',

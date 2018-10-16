@@ -22,6 +22,7 @@ var filteredArrayTemp;
 var regexStringNer = '';
 var regexString ='\\brocket\\b|\\bkolade\\b';
 
+
 const {
   convertFromRaw,
   convertToRaw,
@@ -107,19 +108,24 @@ class CharacterWordSentence extends React.Component {
       insertState.text = insertState.trigger + filteredArrayTemp[index];
       return addSuggestion(insertState);
     };
-
+    
     this.state = {
       //editorState: EditorState.createWithContent(blocks, decorator),
       editorState: EditorState.createEmpty(compositeDecorator),
      // editorState: EditorState.createEmpty(),
       autocompleteState: null,
     };
-
+    
+     
+   // this.analyzer();
     this.onChange = (editorState) => {
 
+     // let currentComponent = this;
+     this.setState({editorState});
+    //  this.setState({editorState}, this.analyzer({editorState}));
+     // this.setState(this.analyzer({editorState}));
       
-      this.setState({editorState}),
-      this.analyzer()
+      //this.analyzer()
       
      };
     this.focus = () => this.refs.editor.focus();
@@ -139,51 +145,48 @@ class CharacterWordSentence extends React.Component {
    // editorState: EditorState.createEmpty()
   // editorState: EditorState.createWithContent(compositeDecorator)
   }
-
+  
   componentDidMount() {
+    const compositeDecorator = new CompositeDecorator([
+      {
+        strategy: handleStrategy,
+        component: HandleSpan,
+      },
+      {
+        strategy: hashtagStrategy,
+        component: HashtagSpan,
+      },
+    ]);
+    this.state = {
+      //editorState: EditorState.createWithContent(blocks, decorator),
+      editorState: EditorState.createEmpty(compositeDecorator),
+     // editorState: EditorState.createEmpty(),
+      autocompleteState: null,
+    };
+
+  };
+
+  /*componentDidMount() {
     this.getBacon()
       .then(bacon => {
         this.setState({ text: bacon.join('\n\n') }, () => this.setCounts(this.state.text));
-       // this.setState({ text: "New York is a city in America." }, () => this.setCounts(this.state.text));
       })
       .catch(err => this.setState({ text: `Error: ${err.message}` }));
 
-     // this.setCounts
-   // allUserData = this.analyzer();
-  //  console.log(allUserData);
-   // this.setState({ word: 'good' });
-  }
+  }*/
 
   /*
     Fetches three parapgraphs from https://baconipsum.com/
   */
   getBacon = async () => {
-    //getBacon = async () => {
+    
     const response = await fetch('https://baconipsum.com/api/?type=all-meat&paras=3');
     const body = await response.json();
     
     if (response.status !== 200) 
       throw Error(body.message);
 
-    //return body;
-
-    /*var request = require('request');
-
-    var dataString = 'The quick brown fox jumped over the lazy dog.';
-
-    var options = {
-    url: 'http://textanalysis.sdsd.co:9005/?properties={%22annotators%22%3A%22tokenize%2Cssplit%2Cpos%22%2C%22outputFormat%22%3A%22json%22}',
-    method: 'POST',
-    body: dataString
-           };
-
-    function callback(error, response, body) {
-    if (!error && response.statusCode == 200) {
-        console.log(body);
-              }
-           }
-
-    request(options, callback);*/
+    
     const  sampleText = "New York is a city in America.";
     return body;
   }
@@ -248,8 +251,8 @@ class CharacterWordSentence extends React.Component {
     const paragraphs = this.removeEmptyElements(trimmedValue.split(/\r?\n|\r/));
     
     this.setState({
-      text: value,
-      word: words,
+      //text: value,
+      //word: words,
       charCount: trimmedValue.length,
       wordCount: value === '' ? 0 : wordsCounter.length,
       sentenceCount: value === '' ? 0 : sentences.length,
@@ -257,12 +260,18 @@ class CharacterWordSentence extends React.Component {
     });
     
   }
-    //analyzer =  allUserData => {
-    analyzer =  () => {
-    let currentComponent = this;
+    
+    analyzer =  ({editorState}) => {
+    
+   
     var request = require('request');
     //var dataString = this.state.text;
+    let currentComponent = this;
     var dataString = currentComponent.state.editorState.getCurrentContent().getPlainText();
+    var dataContent = currentComponent.state.editorState.getCurrentContent();
+    
+    //console.log(dataString);
+    //() => this.setCounts(dataString)
     //var block = this.state.editorState.getCurrentContent().getBlockMap()
     const rawContent = {
       blocks: [
@@ -314,7 +323,7 @@ class CharacterWordSentence extends React.Component {
     function callback(error, response, body) {
     if (!error && response.statusCode == 200) {
 
-       // console.log(body);
+       //console.log(body);
 
         var nerReturnedValue = JSON.parse(body);
         //console.log( nerReturnedValue);
@@ -351,7 +360,14 @@ class CharacterWordSentence extends React.Component {
           //  entityRanges: [{offset: 0, length: nerValuesWord.length, key: 'first'}],
           });
           } 
-          else if(isNer && nerReturnedValue.sentences[i]['tokens'][j]['ner'] == "NUMBER")
+          else if(isNer && (nerReturnedValue.sentences[i]['tokens'][j]['ner'] == "NUMBER" || 
+          nerReturnedValue.sentences[i]['tokens'][j]['ner'] == "DATE" || 
+          nerReturnedValue.sentences[i]['tokens'][j]['ner'] == "EMAIL" ||
+          nerReturnedValue.sentences[i]['tokens'][j]['ner'] == "TITLE" ||
+          nerReturnedValue.sentences[i]['tokens'][j]['ner'] == "CAUSE_OF_DEATH" ||
+          nerReturnedValue.sentences[i]['tokens'][j]['ner'] == "SET" ||
+          nerReturnedValue.sentences[i]['tokens'][j]['ner'] == "TIME"||
+          nerReturnedValue.sentences[i]['tokens'][j]['ner'] == "COUNTRY"))
           {
             var nerValuesWord = nerReturnedValue.sentences[i]['tokens'][j]['originalText'] 
            // + '  ' +  '-------------------------' + nerReturnedValue.sentences[i]['tokens'][j]['ner'];
@@ -378,7 +394,7 @@ class CharacterWordSentence extends React.Component {
             }
          }
          //console.log(nerReturnedValue.sentences.length);
-         //NerRecognisedEntity = [];
+        // NerRecognisedEntity = [];
          for(var i=0; i < nerReturnedValue.sentences.length; i++)
          {
           
@@ -389,9 +405,17 @@ class CharacterWordSentence extends React.Component {
           //  + '  ' +
           // nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] );
           // NerRecognisedEntity.push(nerReturnedValue.sentences[i]['entitymentions'][j]['text']);
-             if(nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] != "NUMBER")
+             if(nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] != "NUMBER" && 
+             nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] != "DATE" && 
+             nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] != "EMAIL" &&
+             nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] != "TITLE" &&
+             nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] != "CAUSE_OF_DEATH" &&
+             nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] != "SET" &&
+             nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] != "TIME" &&
+             nerReturnedValue.sentences[i]['entitymentions'][j]['ner'] != "COUNTRY")
               {
                 NerRecognisedEntity.push(nerReturnedValue.sentences[i]['entitymentions'][j]['text']);
+                console.log(nerReturnedValue.sentences[i]['entitymentions'][j]['ner']);
              }
             }
 
@@ -417,7 +441,7 @@ class CharacterWordSentence extends React.Component {
          //console.log(content);
         // console.log(convertToRaw(content));
         // const blocked = convertFromRaw(content);
-        /*const decorator = new CompositeDecorator([
+        const decorator = new CompositeDecorator([
           {
             strategy: getEntityStrategy('IMMUTABLE'),
             component: TokenSpan,
@@ -430,7 +454,7 @@ class CharacterWordSentence extends React.Component {
             strategy: getEntityStrategy('SEGMENTED'),
             component: TokenSpan,
           },
-        ]);*/
+        ]);
         const compositeDecorator = new CompositeDecorator([
           {
             strategy: handleStrategy,
@@ -440,27 +464,31 @@ class CharacterWordSentence extends React.Component {
             strategy: hashtagStrategy,
             component: HashtagSpan,
           },
-        ]);
+           ]);
        
 
-       //const blocks = convertFromRaw(rawContent);
-      // const blocks = convertFromRaw(this.state.editorState.getCurrentContent());
-        const plainText = 'Lorem ipsum dolor sit amet, consectetuer adipiscing elit.';
-      // const content = ContentState.createFromText(plainText);
-       //const content = ContentState.createFromText(dataString);
+       const blocks = convertFromRaw(rawContent);
+       //const blocks = convertFromRaw(this.state.editorState.getCurrentContent());
+       const plainText = 'Lorem ipsum dolor sit amet, "@kolade #consectetuer adipiscing elit. France';
+       const content = ContentState.createFromText(plainText);
+      //const content = ContentState.createFromText(editorState.getCurrentContent().getPlainText());
        // console.log(content.getBlockMap()._list._tail.array["0"][1]._map._root.entries);
         
        // console.log(content.getBlockMap().first());
-         currentComponent.setState({
-          word: nerValues,
-         // editorState: editorState
+         currentComponent.setState( {
+         // word: nerValues,
+         // wordCount: dataString,
+         // sentenceCount: dataString,
+          //editorState: editorState
+         //editorState: EditorState.createEmpty(compositeDecorator),
          //editorState: EditorState.createWithContent(content)
          //editorState: EditorState.createEmpty() 
-         // editorState: EditorState.createWithContent(block, compositeDecorator) 
-        //  editorState: EditorState.createEmpty(compositeDecorator),
+         editorState: EditorState.createWithContent(dataContent, compositeDecorator) 
+          
+          
         // editorState: EditorState.push(blocked)
         // editorState: EditorState.createWithContent(compositeDecorator)
-        // createWithContent(blocks, decorator)
+       //  editorState: EditorState.createWithContent(blocks, decorator)
         //changeType: EditorChangeType
          // word: nerReturnedValue.sentences[0]['tokens'][0]['word']
         // word: nerReturnedValue.sentences[0]['entitymentions'][0]['text'] 
@@ -472,19 +500,41 @@ class CharacterWordSentence extends React.Component {
        // console.log(currentComponent.state.editorState.getCurrentContent().getBlockMap());
               }
            }
-
+    
     request(options, callback);
+    //currentComponent.setState({editorState});
+     // this.onChange = (editorState) => {
+
+     //  let currentComponent = this;
+     // this.setState({editorState}, this.analyzer({editorState}));
+      // this.setState(this.analyzer({editorState}));
+      // currentComponent.setState({editorState});
+       //this.analyzer()
+       
+     //  };
+    
    // console.log(currentComponent.state.editorState.getCurrentContent().getBlockMap());
+   const compositeDecorator = new CompositeDecorator([
+    {
+      strategy: handleStrategy,
+      component: HandleSpan,
+    },
+    {
+      strategy: hashtagStrategy,
+      component: HashtagSpan,
+    },
+     ]);
     function greeting(name) {
      // tokenizeContent = name;
       //alert('Hello ' + name);
       
       }
-      
+    //  handleStrategy
   }
 
 
   handleChange = e => this.setCounts(e.target.value);
+  //getAutocompleteRange(trigger)
   renderAutocomplete() {
     const {
       autocompleteState,
@@ -504,7 +554,9 @@ class CharacterWordSentence extends React.Component {
 
   getFilteredArray(type, text) {
     const dataArray = type == triggers.PERSON ? data.persons : data.tags;
-    const filteredArray = filterArray(dataArray, text.replace(triggers.regExByType(type), ''));
+   const filteredArray = filterArray(dataArray, text.replace(triggers.regExByType(type), '')); 
+   //const filteredArray = filterArray(dataArray, text.replace(regexStringNer, '')); 
+   
     return filteredArray;
   }
   //logState = e => this.analyzer();
@@ -522,14 +574,11 @@ class CharacterWordSentence extends React.Component {
     return (
       
       <div>
-        <div id="topmenu"><p><button onClick={() => this.analyzer()}>PreAnalyze</button></p></div>
+        <div id="topmenu"><p><button onClick={() => this.analyzer(this.state.editorState)}>Runner</button></p></div>
         
-        <textarea rows='15' onChange={this.handleChange} value={this.state.text}></textarea>
         
-        <p><strong>Character Count:</strong> {this.state.charCount}<br/>
-        <strong>Word Count:</strong> {this.state.wordCount}<br/>
-        <strong>Sentence Count:</strong> {this.state.sentenceCount}<br/>
-        <strong>Paragraph Count:</strong> {this.state.paragraphCount}</p>
+        
+        
 
          <div style={styles.root}>
             {
@@ -539,6 +588,7 @@ class CharacterWordSentence extends React.Component {
         < AutocompleteEditor editorState = {
         this.state.editorState
         }
+       
         onChange = {
         this.onChange
         }
@@ -551,14 +601,12 @@ class CharacterWordSentence extends React.Component {
         ref="editor"
         />
         </div>
-        <input
-          onClick={this.logState}
-          style={styles.button}
-          type="button"
-          value="Log State"
-        />
+        <p><button onClick={() => this.save()}>Save</button></p>
         </div>
-        
+        <p><strong>Character Count:</strong> {this.state.charCount}<br/>
+        <strong>Word Count:</strong> {this.state.wordCount}<br/>
+        <strong>Sentence Count:</strong> {this.state.sentenceCount}<br/>
+        <strong>Paragraph Count:</strong> {this.state.paragraphCount}</p>
         </div>
     );
   }
@@ -618,30 +666,36 @@ const TokenSpan = (props) => {
        */
       // const HANDLE_REGEX = /\@[\w]+/g;
       
-      var rocket = 'rocket';
+     // var rocket = 'rocket';
      
-      var regexString2 = '\\b'+rocket+'\\b|\\bkolade\\b';
+     // var regexString2 = '\\b'+rocket+'\\b|\\bkolade\\b';
     // var regexString2 = '\\brocket\\b|\\bkolade\\b';
      // var regexString = regexStringNer;
      //var regexStringNew =  regexString.concat(regexString2);
-     regexString =  regexString +  regexString2;
+     //regexString =  regexString +  regexString2;
       //const HANDLE_REGEX = RegExp(regexString, 'g');
-      const HANDLE_REGEX = regexString;
-      //const HANDLE_REGEX =/\brocket\b|\bkolade\b/g;
+      //const HANDLE_REGEX = regexString;
+      const HANDLE_REGEX =/\brocket\b|\bkolade\b/g;
       
       const HASHTAG_REGEX = /\#[\w\u0590-\u05ff]+/g;
       
       function handleStrategy(contentBlock, callback, contentState) {
-        findWithRegex(HANDLE_REGEX, contentBlock, callback);
+        findWithRegex(HANDLE_REGEX, contentBlock, contentState, callback);
       }
       
       function hashtagStrategy(contentBlock, callback, contentState) {
         findWithRegex2(HASHTAG_REGEX, contentBlock, callback);
       }
       
-      function findWithRegex(regexTracker, contentBlock, callback) {
+      function findWithRegex(regexTracker, contentBlock, contentState, callback) {
        
-       var regexStringNer ;
+      // var regexStringNer;
+       var regexStringNer2  = '\\bFrance\\b';
+
+       /*NerRecognisedEntity = ["06/09/2018 17:39:00", "France", "Ph", "helmgale@helmgale.fr", 
+       "MV SAOURA", "9.100", "Marmara", "Turkey", "September", "12th", "MV STIDIA", "9.100", 
+       "Casablanca Morocco", "September 22nd", "2011/2012", "9.100", "MV TIMGAD", 
+       "12.500", "Turkey", "Black Sea", "15th", "end", "2016", "12.500", "America"];*/
 
        if(NerRecognisedEntity.length == 0)
        {
@@ -667,16 +721,32 @@ const TokenSpan = (props) => {
         //console.log('\\b'+NerRecognisedEntity[1]+'\\b');
        // regexStringNer = '\\b'+NerRecognisedEntity[0]+'\\b';
        // var rocket = NerRecognisedEntity[1];
-        console.log(regexStringNer);
+       // console.log(regexStringNer);
         const handle_regex = RegExp(regexStringNer, 'g');
         //var regexString2 = '\\brocket\\b|\\bkolade\\b';
         //const handle_regex = RegExp(regexString2, 'g');
         const text = contentBlock.getText();
-        let matchArr, start;
-        while ((matchArr = handle_regex.exec(text)) !== null) {
+       // console.log(text);
+        //const text = contentState.getPlainText();
+       // console.log(contentBlock);
+        var text2 = '';
+        let blockArray;
+        //console.log(contentState.getBlocksAsArray().length);
+        blockArray = contentState.getBlocksAsArray();
+       /* for(var i=0; i < contentState.getBlocksAsArray().length; i++)
+          {
+           console.log(blockArray[i].getText());
+           text2 = blockArray[i].getText();
+           console.log(text2);
+           }*/
+        //console.log(contentState.getSelectionBefore());
+          let matchArr, start;
+          while ((matchArr = handle_regex.exec(text)) !== null) 
+           {
           start = matchArr.index;
           callback(start, start + matchArr[0].length);
-        }
+           }
+        
       }
 
       function findWithRegex2(regex, contentBlock, callback) {
