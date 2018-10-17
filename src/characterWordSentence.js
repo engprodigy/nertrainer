@@ -13,6 +13,7 @@ import {normalizeIndex, filterArray} from './utils';
 //import * as triggers from './triggers';
 import * as data from './data';
 import addSuggestion from './addsuggestion';
+import Dropdown from './components/Dropdown';
 
 var allUserData = '';
 //var NerRecognisedEntity = ['France','France'];
@@ -114,9 +115,47 @@ class CharacterWordSentence extends React.Component {
       editorState: EditorState.createEmpty(compositeDecorator),
      // editorState: EditorState.createEmpty(),
       autocompleteState: null,
+      selectedClassifierid: null,
+      classifier: [
+        {
+          id: 0,
+          title: 'Position',
+          selected: false,
+          key: 'classifier'
+        },
+        {
+          id: 1,
+          title: 'Cargo',
+          selected: false,
+          key: 'classifier'
+        },
+        {
+          id: 2,
+          title: 'SnP',
+          selected: false,
+          key: 'classifier'
+        }
+      ]
     };
     
-     
+    /*toggleSelected = (id, key) => {
+      let temp = [...this.state[key]]
+      temp[id].selected = !temp[id].selected
+      this.setState({
+        [key]: temp
+      })
+    }*/
+  
+    this.resetThenSet = (id, stateKey) => {
+      let classifier = [...this.state.classifier]
+      classifier.forEach(item => item.selected = false);
+      classifier[id].selected = true;
+      this.setState({
+       
+        selectedClassifierid: id,
+      
+      });
+    }
    // this.analyzer();
     this.onChange = (editorState) => {
 
@@ -146,7 +185,7 @@ class CharacterWordSentence extends React.Component {
   // editorState: EditorState.createWithContent(compositeDecorator)
   }
   
-  componentDidMount() {
+  /*componentDidMount() {
     const compositeDecorator = new CompositeDecorator([
       {
         strategy: handleStrategy,
@@ -164,7 +203,7 @@ class CharacterWordSentence extends React.Component {
       autocompleteState: null,
     };
 
-  };
+  };*/
 
   /*componentDidMount() {
     this.getBacon()
@@ -263,10 +302,14 @@ class CharacterWordSentence extends React.Component {
     
     analyzer =  ({editorState}) => {
     
-   
+    
     var request = require('request');
     //var dataString = this.state.text;
     let currentComponent = this;
+   /* if(currentComponent.this.state.classifier){
+      
+    }*/
+    console.log(currentComponent.state.selectedClassifierid);
     var dataString = currentComponent.state.editorState.getCurrentContent().getPlainText();
     var dataContent = currentComponent.state.editorState.getCurrentContent();
     
@@ -574,13 +617,24 @@ class CharacterWordSentence extends React.Component {
     return (
       
       <div>
-        <div id="topmenu"><p><button onClick={() => this.analyzer(this.state.editorState)}>Runner</button></p></div>
+        <div id="topmenu"><p><button onClick={() => this.analyzer(this.state.editorState)}>Runner</button></p>
         
         
         
-        
+           <div className="wrapper">
+             
 
-         <div style={styles.root}>
+                <Dropdown
+                    title="Select classifier"
+                    list={this.state.classifier}
+                    resetThenSet={this.resetThenSet}
+                />
+
+
+          </div>
+        </div>
+       
+        <div style={styles.root}>
             {
           this.renderAutocomplete()
                 }
@@ -601,7 +655,7 @@ class CharacterWordSentence extends React.Component {
         ref="editor"
         />
         </div>
-        <p><button onClick={() => this.save()}>Save</button></p>
+        <div id="lowerbutton"><p><button onClick={() => this.save()}>Save</button></p></div>
         </div>
         <p><strong>Character Count:</strong> {this.state.charCount}<br/>
         <strong>Word Count:</strong> {this.state.wordCount}<br/>
@@ -759,14 +813,28 @@ const TokenSpan = (props) => {
       }
       
       const HandleSpan = (props) => {
+        console.log(props.children[0].props.text);
+        if(props.children[0].props.text == 'Marmara'){
         return (
           <span
-            style={styles.handle}
+            /*style={styles.handle}*/
             data-offset-key={props.offsetKey}
             >
             {props.children}
           </span>
         );
+          }else{
+
+            return (
+              <span
+                
+                style={styles.handle}
+                data-offset-key={props.offsetKey}
+                >
+                {props.children}
+              </span>
+            );
+          }
       };
       
       const HashtagSpan = (props) => {
