@@ -813,17 +813,17 @@ const TokenSpan = (props) => {
       }
       
       const HandleSpan = (props) => {
-        console.log(props.children[0].props.text);
-        if(props.children[0].props.text == 'Marmara'){
+       // console.log(props.children[0].props.text);
+      //  if(props.children[0].props.text == 'Marmara'){
         return (
           <span
-            /*style={styles.handle}*/
+            style={styles.handle}
             data-offset-key={props.offsetKey}
             >
             {props.children}
           </span>
         );
-          }else{
+         /* }else{
 
             return (
               <span
@@ -834,7 +834,7 @@ const TokenSpan = (props) => {
                 {props.children}
               </span>
             );
-          }
+          }*/
       };
       
       const HashtagSpan = (props) => {
