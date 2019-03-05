@@ -5,7 +5,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 NER Trainer React App.
 
 
-An NLP (Natural Language Processing) tools for intelligent analysis of text based on the Named Entity Recognition (NER). NER labels sequences of words in a text which are the names of things, such as person and company names, location and places. 
+An NLP (Natural Language Processing) tools for intelligent analysis of text based on the Named Entity Recognition (NER). NER labels sequences of words in a text which are the names of things, persons, company names, location and places. 
 
 This application was engineered for NER analysis of shipping emails send by brokers and chaterers to quickly identify ship names, built year, arrival port, arrival date and other important information contained in emails they send to each other.
 
