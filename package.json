@@ -12,7 +12,7 @@
     "react-dom": "^16.4.2",
     "react-fontawesome": "^1.6.1",
     "react-onclickoutside": "^6.7.1",
-    "react-scripts": "1.1.4",
+    "react-scripts": "5.0.1",
     "react-tokenizer": "^0.3.0",
     "request": "^2.88.0"
   },
