@@ -14,6 +14,8 @@ It comes with well-engineered feature extractors for Named Entity Recognition, a
 
 This is a sample of the code for analysis and feature purpose. Full code base is on company internal SVN repository. I can't show here because of privacy and intellectual property issues.
 
+The blue highlighted text clolor where identified by the AI as shipping words (like departure date, arrival date, ship name) as initially trained by us. 
+
 ![ner_trainer](https://user-images.githubusercontent.com/1181072/51521552-31d34d00-1e27-11e9-8aa8-ec27f778ea58.png)
 
 It also automates training process to generate your own CRF clasiffiers
