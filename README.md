@@ -2,7 +2,7 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 
 # engprodigy.github.io-ner-trainer
-NER Trainer React App.
+AI NER Trainer React App.
 
 
 An NLP (Natural Language Processing) tools for intelligent analysis of text based on the Named Entity Recognition (NER) tool. NER labels sequences of words in a text which are the names of things, persons, company names, location and places. 
